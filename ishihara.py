@@ -11,14 +11,16 @@ try:
 except ImportError:
     IMPORTED_SCIPY = False
 
-BACKGROUND = (255, 255, 255)
+BACKGROUND = (255, 255, 255) #COLOR TO IDENTIFY BACKGROUND IN GIVE IMAGE FOR PATTERN
 TOTAL_CIRCLES = 1500
 
-color = lambda c: ((c >> 16) & 255, (c >> 8) & 255, c & 255)
+color = lambda c: ((c >> 16) & 255, (c >> 8) & 255, c & 255) #HEX TO RGB
 
+#COLORS OF THE PATTERN
 COLORS_ON = [
     color(0xF9BB82), color(0xEBA170), color(0xFCCD84)
 ]
+#COLORS OF THE BACKGROUND
 COLORS_OFF = [
     color(0x9CA594), color(0xACB4A5), color(0xBBB964),
     color(0xD7DAAA), color(0xE5D57D), color(0xD1D6AF)
