@@ -1,6 +1,7 @@
 import math
 import random
 import sys
+import argparse
 
 from PIL import Image, ImageDraw
 
@@ -13,17 +14,16 @@ except ImportError:
 
 BACKGROUND = (255, 255, 255) #COLOR TO IDENTIFY BACKGROUND IN GIVE IMAGE FOR PATTERN
 TOTAL_CIRCLES = 1500
-
+PATTERNPATH = None
 color = lambda c: ((c >> 16) & 255, (c >> 8) & 255, c & 255) #HEX TO RGB
 
 #COLORS OF THE PATTERN
 COLORS_ON = [
-    color(0xF9BB82), color(0xEBA170), color(0xFCCD84)
+    color(0xd7ed5a)
 ]
 #COLORS OF THE BACKGROUND
 COLORS_OFF = [
-    color(0x9CA594), color(0xACB4A5), color(0xBBB964),
-    color(0xD7DAAA), color(0xE5D57D), color(0xD1D6AF)
+    color(0xede05a)
 ]
 
 
@@ -58,13 +58,47 @@ def circle_draw(draw_image, image, (x, y, r)):
     fill_colors = COLORS_ON if overlaps_motive(image, (x, y, r)) else COLORS_OFF
     fill_color = random.choice(fill_colors)
 
-    draw_image.ellipse((x - r, y - r, x + r, y + r),
-                       fill=fill_color,
-                       outline=fill_color)
+    rgbColor = color(int(fill_color.split(":")[0],16))
+    variation = int(fill_color.split(":")[1],10)
+    #generate each RGB component from X-(RANDMAX) to X+(RANDMAX)
+    randomizedColor = tuple(map(lambda x : int((x + (random.random()*(variation*2)) - variation)) & 255,rgbColor))
 
+    draw_image.ellipse((x - r, y - r, x + r, y + r),
+                       fill=randomizedColor,
+                       outline=randomizedColor)
+
+def parseBkgColors(backgroundColors):
+    global COLORS_OFF
+    COLORS_OFF = backgroundColors
+    print "COLORS_OFF " + repr(COLORS_OFF)
+
+def parsePttColors(patternColors):
+    global COLORS_ON
+    COLORS_ON = patternColors
+    print "COLORS_ON " + repr(COLORS_ON)
+
+def parsePatternPath(patternPath):
+    global PATTERNPATH
+    PATTERNPATH = patternPath
+    print "PATTERNPATH " + repr(PATTERNPATH)
+
+
+def parseParam():
+    parser = argparse.ArgumentParser(description='Generate Ishihara plate given colors and a pattern')
+
+    parser.add_argument('-bkgc', type=str, action='append', required=True,
+                        help='Background color/s. Format HEX:VARIATION, where HEX is the color and VARIATION is an intenger to be the MAX variation of each RGB component')
+    parser.add_argument('-pttc', type=str, action='append', required=True,
+                        help='Pattern color/s. Format HEX:VARIATION, where HEX is the color and VARIATION is an intenger to be the MAX variation of each RGB component')
+    parser.add_argument('--pattern', type=str, required=True, help='Path of the pattern image')
+    args = vars(parser.parse_args())
+    parseBkgColors(args["bkgc"])
+    parsePttColors(args["pttc"])
+    parsePatternPath(args["pattern"])
 
 def main():
-    image = Image.open(sys.argv[1])
+    parseParam()
+    image = Image.open(PATTERNPATH)
     image2 = Image.new('RGB', image.size, BACKGROUND)
     draw_image = ImageDraw.Draw(image2)
 
